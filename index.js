@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -40,6 +40,7 @@ async function run() {
         const districtsCollection = client.db("RoktoBorno_DB").collection("districts")
         const upazilasCollection = client.db("RoktoBorno_DB").collection("upazilas")
         const usersCollection = client.db("RoktoBorno_DB").collection("users")
+        const donationRequestsCollection = client.db("RoktoBorno_DB").collection("DonationRequests")
 
         // jwt related api
         app.post('/jwt', async (req, res) => {
@@ -113,16 +114,91 @@ async function run() {
 
         app.get('/users/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            const query = {email: email};
+            const query = { email: email };
             const result = await usersCollection.findOne(query);
             res.send(result);
         })
 
-       
 
         app.post('/users', async (req, res) => {
             const users = req.body;
             const result = await usersCollection.insertOne(users);
+            res.send(result);
+        })
+
+        app.patch('/users/:email', verifyToken, async (req, res) => {
+            const userInfo = req.body;
+            const email = req.params.email;
+            const filter = { email: email };
+            const updatedDoc = {
+                $set: {
+                    name: userInfo.name,
+                    avatar: userInfo.avatar,
+                    blood_group: userInfo.blood_group,
+                    division: userInfo.division,
+                    district: userInfo.district,
+                    upazila: userInfo.upazila,
+                }
+            }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // donation request related api
+        app.get('/donationRequest', verifyToken, async (req, res) => {
+            const { email, id } = req.query;
+            const query = {};
+
+
+            if (email) {
+                query.donorEmail = email;
+            }
+            if (id) {
+                query._id = new ObjectId(id);
+            }
+            // console.log(id);
+
+
+
+            let result;
+            if (email) {
+                result = await donationRequestsCollection.find(query).toArray();
+            }
+            if (id) {
+                result = await donationRequestsCollection.findOne(query);
+            }
+            res.send(result);
+        })
+
+
+        app.patch('/donationRequest/:id', verifyToken, async (req, res) => {
+            const donationRequestInfo = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+
+            // console.log(donationRequestInfo);
+
+            const updatedDoc = {
+                $set: {
+                    recipientName: donationRequestInfo.recipientName,
+                    recipientEmail: donationRequestInfo.recipientEmail,
+                    fullAddress: donationRequestInfo.fullAddress,
+                    hospitalName: donationRequestInfo.hospitalName,
+                    donationDate: donationRequestInfo.donationDate,
+                    donationTime: donationRequestInfo.donationTime,
+                    requestMessage: donationRequestInfo.requestMessage
+                }
+            }
+
+            const result = await donationRequestsCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        app.delete('/donationRequest', verifyToken, async (req, res) => {
+            const { id } = req.query;
+            const query = {_id: new ObjectId(id)};
+            const result = await donationRequestsCollection.deleteOne(query);
             res.send(result);
         })
 
