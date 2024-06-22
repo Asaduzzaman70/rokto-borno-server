@@ -71,13 +71,30 @@ async function run() {
         const verifyAdmin = async (req, res, next) => {
             const email = req.decode.email;
             const query = { email: email };
-            const user = await userCollection.findOne(query);
+            const user = await usersCollection.findOne(query);
             const isAdmin = user?.role === 'admin';
             if (!isAdmin) {
                 return res.status(403).send({ message: 'forbidden access' })
             }
             next();
         }
+
+        app.get('/user/admin/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+
+            if (email !== req.decode.email) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+            }
+            res.send({ admin });
+        })
+
 
         // Location
         app.get('/division', async (req, res) => {
@@ -108,7 +125,7 @@ async function run() {
         })
 
         // Users Related api
-        app.get('/users', verifyToken, async (req, res) => {
+        app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -146,7 +163,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/users', verifyToken, async (req, res) => {
+        app.patch('/users', verifyToken, verifyAdmin, async (req, res) => {
             const { status, email, role } = req.query;
 
 
@@ -234,7 +251,7 @@ async function run() {
         })
 
         // state or analytics
-        app.get('/admin-stats', verifyToken, async (req, res) => {
+        app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
             const users = await usersCollection.estimatedDocumentCount();
             const donation = await donationRequestsCollection.estimatedDocumentCount();
 
@@ -256,6 +273,11 @@ async function run() {
                 donation,
                 revenue
             })
+        })
+
+        app.get('/donationRequest/admin', verifyToken, verifyAdmin, async (req, res) =>{
+            const result = await donationRequestsCollection.find().toArray();
+            res.send(result);
         })
 
 
