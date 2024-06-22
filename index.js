@@ -41,6 +41,7 @@ async function run() {
         const upazilasCollection = client.db("RoktoBorno_DB").collection("upazilas")
         const usersCollection = client.db("RoktoBorno_DB").collection("users")
         const donationRequestsCollection = client.db("RoktoBorno_DB").collection("DonationRequests")
+        const paymentCollection = client.db("RoktoBorno_DB").collection("payments");
 
         // jwt related api
         app.post('/jwt', async (req, res) => {
@@ -207,6 +208,32 @@ async function run() {
             const result = await donationRequestsCollection.deleteOne(query);
             res.send(result);
         })
+
+        // state or analytics
+        app.get('/admin-stats', verifyToken, async (req, res) => {
+            const users = await usersCollection.estimatedDocumentCount();
+            const donation = await donationRequestsCollection.estimatedDocumentCount();
+
+            const result = await paymentCollection.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: {
+                            $sum: '$price'
+                        }
+                    }
+                }
+            ]).toArray();
+            const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+
+
+            res.send({
+                users,
+                donation,
+                revenue
+            })
+        })
+
 
 
         // Send a ping to confirm a successful connection
