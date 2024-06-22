@@ -42,6 +42,7 @@ async function run() {
         const usersCollection = client.db("RoktoBorno_DB").collection("users")
         const donationRequestsCollection = client.db("RoktoBorno_DB").collection("DonationRequests")
         const paymentCollection = client.db("RoktoBorno_DB").collection("payments");
+        const blogCollection = client.db("RoktoBorno_DB").collection("blog");
 
         // jwt related api
         app.post('/jwt', async (req, res) => {
@@ -275,8 +276,39 @@ async function run() {
             })
         })
 
-        app.get('/donationRequest/admin', verifyToken, verifyAdmin, async (req, res) =>{
+        app.get('/donationRequest/admin', verifyToken, verifyAdmin, async (req, res) => {
             const result = await donationRequestsCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/blog', async (req, res) => {
+            const result = await blogCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post('/blog', async (req, res) => {
+            const blogInfo = req.body;
+            const result = await blogCollection.insertOne(blogInfo);
+            res.send(result);
+        })
+
+        app.patch('/blog', verifyToken, verifyAdmin, async (req, res) => {
+            const { status, id } = req.query;
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: { blogStatus: status }
+            }
+
+            const result = await blogCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        app.delete('/blog', verifyToken, verifyAdmin, async (req, res) => {
+            const { id } = req.query;
+            console.log(id);
+            const query = { _id: new ObjectId(id) };
+            const result = await blogCollection.deleteOne(query);
             res.send(result);
         })
 
