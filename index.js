@@ -214,6 +214,14 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/donationRequest/:status', async (req, res) =>{
+            const status = req.params.status;
+            const query = {donationStatus: status};
+            console.log(query, status);
+            const result = await donationRequestsCollection.find(query).toArray();
+            res.send(result);
+        })
+
         app.post('/donationRequest', verifyToken, async (req, res) => {
             const donationRequest = req.body;
             const result = await donationRequestsCollection.insertOne(donationRequest);
