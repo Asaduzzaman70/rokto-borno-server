@@ -108,7 +108,7 @@ async function run() {
         })
 
         // Users Related api
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -141,6 +141,30 @@ async function run() {
                     upazila: userInfo.upazila,
                 }
             }
+
+            const result = await usersCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        app.patch('/users', verifyToken, async (req, res) => {
+            const { status, email, role } = req.query;
+
+
+            const filter = { email: email };
+
+            let updatedDoc;
+
+            if (status) {
+                updatedDoc = {
+                    $set: { status: status }
+                }
+            }
+            if (role) {
+                updatedDoc = {
+                    $set: { role: role }
+                }
+            }
+            console.log(updatedDoc);
 
             const result = await usersCollection.updateOne(filter, updatedDoc);
             res.send(result);
