@@ -171,6 +171,12 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/donationRequest', verifyToken, async (req, res) => {
+            const donationRequest = req.body;
+            const result = await donationRequestsCollection.insertOne(donationRequest);
+            res.send(result);
+        })
+
 
         app.patch('/donationRequest/:id', verifyToken, async (req, res) => {
             const donationRequestInfo = req.body;
@@ -197,7 +203,7 @@ async function run() {
 
         app.delete('/donationRequest', verifyToken, async (req, res) => {
             const { id } = req.query;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await donationRequestsCollection.deleteOne(query);
             res.send(result);
         })
