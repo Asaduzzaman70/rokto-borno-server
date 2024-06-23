@@ -195,7 +195,7 @@ async function run() {
 
 
             if (email) {
-                query.donorEmail = email;
+                query.requesterEmail = email;
             }
             if (id) {
                 query._id = new ObjectId(id);
@@ -239,7 +239,6 @@ async function run() {
             const updatedDoc = {
                 $set: {
                     recipientName: donationRequestInfo.recipientName,
-                    recipientEmail: donationRequestInfo.recipientEmail,
                     fullAddress: donationRequestInfo.fullAddress,
                     hospitalName: donationRequestInfo.hospitalName,
                     donationDate: donationRequestInfo.donationDate,
