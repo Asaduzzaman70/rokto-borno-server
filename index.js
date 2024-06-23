@@ -214,9 +214,9 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/donationRequest/:status', async (req, res) =>{
+        app.get('/donationRequest/:status', async (req, res) => {
             const status = req.params.status;
-            const query = {donationStatus: status};
+            const query = { donationStatus: status };
             console.log(query, status);
             const result = await donationRequestsCollection.find(query).toArray();
             res.send(result);
@@ -284,13 +284,34 @@ async function run() {
             })
         })
 
-        app.get('/donationRequest/admin', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/donationRequestAdmin/admin', verifyToken, verifyAdmin, async (req, res) => {
             const result = await donationRequestsCollection.find().toArray();
             res.send(result);
         })
 
         app.get('/blog', async (req, res) => {
-            const result = await blogCollection.find().toArray();
+            const { status, _id } = req.query;
+            console.log(status);
+            const query = {}
+            if (status) {
+                query.blogStatus = status
+            }
+            if (_id) {
+                query._id = new ObjectId(_id);
+            }
+            console.log(query);
+
+
+            let result;
+            if (status) {
+                result = await blogCollection.find(query).toArray();
+            }
+            if (_id) {
+                result = await blogCollection.findOne(query);
+            }
+            if (!status && !_id){
+                result = await blogCollection.find().toArray();
+            }
             res.send(result);
         })
 
