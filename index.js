@@ -251,6 +251,23 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/confirmDonation/:id', verifyToken, async (req, res) => {
+            const donarInfo = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    donationStatus: donarInfo.donationStatus,
+                    donarName: donarInfo.donarName,
+                    donarEmail: donarInfo.donarEmail
+                }
+            }
+
+            const result = await donationRequestsCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
         app.delete('/donationRequest', verifyToken, async (req, res) => {
             const { id } = req.query;
             const query = { _id: new ObjectId(id) };
@@ -308,7 +325,7 @@ async function run() {
             if (_id) {
                 result = await blogCollection.findOne(query);
             }
-            if (!status && !_id){
+            if (!status && !_id) {
                 result = await blogCollection.find().toArray();
             }
             res.send(result);
