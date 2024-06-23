@@ -138,6 +138,40 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/search', async (req, res) => {
+            const { bloodGroup, district, division, upazila } = req.query;
+
+
+            let bloodGroupPlus;
+            if (bloodGroup === 'AA' || bloodGroup === 'BB' || bloodGroup === 'ABAB' || bloodGroup === 'OO') {
+                bloodGroupPlus = `${bloodGroup.slice(0, 1)}+`
+            }
+            
+
+            const query = {}
+
+            if (bloodGroup !== 'default') {
+                query.blood_group= bloodGroupPlus
+            }
+            if (district !== 'default') {
+                query.district = district;
+            }
+            if (division !== 'default') {
+                query.division = division;
+            }
+            if (upazila !== 'default') {
+                query.upazila = upazila;
+            }
+
+            if ( Object.keys(query).length === 0) {
+                return res.status(200).send({message: "The array is empty"})
+            }
+            console.log('search:-------------->', query);
+
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        })
+
 
         app.post('/users', async (req, res) => {
             const users = req.body;
