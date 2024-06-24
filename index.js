@@ -144,14 +144,22 @@ async function run() {
 
             let bloodGroupPlus;
             if (bloodGroup === 'AA' || bloodGroup === 'BB' || bloodGroup === 'ABAB' || bloodGroup === 'OO') {
-                bloodGroupPlus = `${bloodGroup.slice(0, 1)}+`
+                if (bloodGroup === 'AA' || bloodGroup === 'BB' || bloodGroup === 'OO') {
+                    bloodGroupPlus = `${bloodGroup.slice(0, 1)}+`
+                }
+                if (bloodGroup === 'ABAB') {
+                    bloodGroupPlus = `${bloodGroup.slice(0, 2)}+`
+                }
             }
-            
+            if (bloodGroup === 'A-' || bloodGroup === 'B-' || bloodGroup === 'AB-' || bloodGroup === 'O-') {
+                bloodGroupPlus = bloodGroup
+            }
+
 
             const query = {}
 
             if (bloodGroup !== 'default') {
-                query.blood_group= bloodGroupPlus
+                query.blood_group = bloodGroupPlus
             }
             if (district !== 'default') {
                 query.district = district;
@@ -163,10 +171,10 @@ async function run() {
                 query.upazila = upazila;
             }
 
-            if ( Object.keys(query).length === 0) {
-                return res.status(200).send({message: "The array is empty"})
+            if (Object.keys(query).length === 0) {
+                return res.status(200).send({ message: "The array is empty" })
             }
-            console.log('search:-------------->', query);
+            console.log('search:-------------->', query, bloodGroup, bloodGroupPlus);
 
             const result = await usersCollection.find(query).toArray();
             res.send(result);
